@@ -1,0 +1,29 @@
+# NO log or sql!
+*.log
+*.sql
+*.sqlite
+
+# Ooops
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Icon?
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+*.lnk
+
+# Node
+npm-debug.log*
+node_modules
+
+# Editors
+*.tmlanguage.cache
+*.tmPreferences.cache
+*.stTheme.cache
+*.sublime-workspace
+*.sublime-project
+.settings/
+.vscode/

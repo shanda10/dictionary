@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<title>电子词典</title>
+<meta name="description" content="">
+<meta name="keywords" content="">
+<style type="text/css">
+	*{
+		box-sizing: border-box;
+		/*设置模型为边框模式 宽度就不会受到边框及padding的影响*/
+	}
+	header {
+		background: #333;
+		height: 60px;
+		width: 100%;
+	}
+	h1 {
+		text-align: left;
+		height: 60px;
+		line-height: 60px;
+		color: #fff;
+		/*字体阴影 x偏移 y偏移 阴影宽度*/
+		text-shadow: 2px 2px 2px black;
+		
+		/*保持右边与下方对齐*/
+		width: 1000px;
+		margin: 0 auto;
+	}
+	.wrap {
+		margin: 0 auto;
+		width: 1000px;
+		margin-top: 10px;
+
+		font-family: Helvetica,Verdana,Arial,sans-serif;
+		
+	}
+
+	.sidebar {
+		margin-right: 10px;
+		width: 240px;
+		display: inline-block;
+		float: left;
+		/*浮动使单词框与释义框同排*/
+
+	}
+	.sidebar input {
+		width: 240px;
+		height: 40px;
+		line-height: 40px;
+		padding: 0 10px;
+
+		border: 1px solid #aaa;
+		border-radius: 4px; 
+		
+	}
+	.sidebar ul {
+		width: 240px;
+		height: 450px;
+
+		list-style: disc outside;
+		 /*列表格式  前面的小点  实心圆 内容外部*/
+		border: 1px solid #aaa;
+		border-radius: 4px; 
+		overflow:auto;
+		overflow-x: hidden;
+		/*滚动条自动显示  并且隐藏横向滚动条*/
+	}
+	.sidebar ul#list{
+		display: none;
+	}
+	.sidebar ul li {
+		height: 30px;
+		color: #49c;
+		text-decoration: none;
+		margin: 10px;
+	}
+	.sidebar ul li:hover {
+		text-decoration:underline; 
+	}
+	.means {
+		width: 750px;
+		padding: 10px;
+		margin-left: 250px; 
+		height: 506px;
+
+
+		border: 1px solid #aaa;
+		border-radius: 4px; 
+		overflow:auto;
+		overflow-x: hidden;
+	}
+	.wordadj {
+		height: 30px;
+		vertical-align: baseline;
+		margin: 0;
+	}
+	 .word {
+	 	margin: 0;
+
+
+		font-size: 18px;
+		font-weight: 600;
+
+	}
+	 .pos {
+	 	margin: 0;
+		margin-left: 10px;
+
+
+		font-size: 16px;
+		font-style: italic;
+	}
+	 .mean {
+	 	margin:0 0 0 20px;
+
+		line-height: 24px;
+		font-size: 16px;
+	}
+	#detail {
+		display: none;
+	}
+</style>
+</head>
+<body>
+   <header>
+   	<h1>Dictionary Online</h1>
+   </header> 
+   <div class="wrap">
+   	<div class="sidebar">
+   		<input type="text" name="searchword" placeholder="Search..." onkeyup="get(this.value)">
+   		<!-- 给li元素添加click事件 实现点击该单词 显示其释义 -->
+   		<!-- 单词列表模板  设置为隐藏 -->
+   		<ul id='list'>
+   			<li onclick="changedetail(this.innerHTML)">{{words}}</li>
+   		</ul>
+   		<!-- 单词列表容器 -->
+   		<ul id='lists'>
+   			
+   		</ul>
+   	</div>
+   	<div class="means" id="detail">
+   	  <p class="wordadj">
+   	  	<span class="word">{{word}}</span>
+   	  	<span class="pos">{{pos}}</span>
+   	  </p>
+   		<p class="mean">{{definition}}</p>
+   	</div>
+   	<div class="means" id="details" ></div>
+   </div>
+
+   <script type="text/javascript">
+ 
+function $(id) {
+	return document.getElementById(id);
+}
+
+
+function changelist(value) {
+	// 更新单词列表
+	var xhr = new XMLHttpRequest;
+	var url = "/api/list/" + value;
+	// 接口位置
+	var lists;
+	xhr.onreadystatechange=function() {
+		if (xhr.readyState == 4) {
+			if (xhr.status >= 200 && xhr.status < 300 || xhr.status == 304) {
+				lists = xhr.responseText;
+				// 返回数据为字符串
+				
+				lists=JSON.parse(lists);
+				// 将字符串转换为json对象
+				
+				var listitem = $('list').innerHTML;
+				// 获取模板
+				var html = [];
+				for (var s=0;s<lists.length;s++) {
+					var _html = listitem.replace('{{words}}', lists[s]);
+					
+					html.push(_html);
+					// 遍历json  并填入模板中
+				};
+				$('lists').innerHTML = html.join('');
+				// 将模板生成的内容写到dom中 
+				// 多次生成时  模板与回填被写入的dom不能是同一个  不然自动回调造成指数级增加
+			};
+		};
+	};
+	xhr.open("get", url, false);
+
+	xhr.send(null);
+}
+
+function changedetail(value) {
+	// 更新释义列表
+	var xhr = new XMLHttpRequest;
+	var url = "/api/detail/" + value;
+	var details;
+	xhr.onreadystatechange=function() {
+		if (xhr.readyState == 4) {
+			if (xhr.status >= 200 && xhr.status < 300 || xhr.status == 304) {
+				details = xhr.responseText;
+				details=JSON.parse(details);
+				
+				var detailitem = $('detail').innerHTML;
+				var html = [];
+				
+				for (var j=0;j<details.length;j++) {
+					var _html = detailitem
+						.replace("{{word}}", details[j].word)
+						.replace("{{pos}}", details[j].pos)
+						.replace("{{definition}}", details[j].definition);
+					html.push(_html);
+		
+				};
+				$('details').innerHTML = html.join('');
+				if(!details){
+					// 如果返回数据为空或者indefined时  释义为
+					$('details').innerHTML ='No data found for " '+value+' "';
+				}
+			}
+		}
+	}
+	xhr.open("get", url, false);
+	xhr.send(null);
+}
+
+
+
+
+
+var start;
+function get(value){
+	var keycode=event.keyCode;
+	// 获取输入的键值
+	if(keycode>=65&&keycode<=90){
+		// 输入字母时更新单词列表
+
+		clearTimeout(start);
+		// 通过清除定时器实现懒加载
+
+		start=setTimeout(function(){
+			changelist(value);
+		},200);
+		// 设置定时器以减少服务器消耗
+	}
+	if(keycode==13){
+		// 按下enter时更新释义列表
+		changedetail(value);
+	}
+	
+   </script>
+</body>
+</html>
