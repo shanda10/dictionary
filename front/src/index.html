@@ -133,7 +133,7 @@
    		<!-- 给li元素添加click事件 实现点击该单词 显示其释义 -->
    		<!-- 单词列表模板  设置为隐藏 -->
    		<ul id='list'>
-   			<li onclick="changedetail(this.innerHTML)">{{words}}</li>
+   			<li onclick="changeDetail(this.innerHTML)">{{words}}</li>
    		</ul>
    		<!-- 单词列表容器 -->
    		<ul id='lists'>
@@ -192,7 +192,7 @@ function changelist(value) {
 	xhr.send(null);
 }
 
-function changedetail(value) {
+function changeDetail(value) {
 	// 更新释义列表
 	var xhr = new XMLHttpRequest;
 	var url = "/api/detail/" + value;
@@ -206,7 +206,7 @@ function changedetail(value) {
 				var detailitem = $('detail').innerHTML;
 				var html = [];
 				
-				for (var j=0;j<details.length;j++) {
+				for (var j=0,len=details.length;j<len;j++) {
 					var _html = detailitem
 						.replace("{{word}}", details[j].word)
 						.replace("{{pos}}", details[j].pos)
@@ -247,9 +247,30 @@ function get(value){
 	}
 	if(keycode==13){
 		// 按下enter时更新释义列表
-		changedetail(value);
+		changeDetail(value);
 	}
+}	
+
+window.onload=function(){
+// 采用事件委托的方法 减少内存消耗
+
+
+// 获取委托主体 一般为其父元素
+	var oUl=$('lists');
 	
+
+	oUl.onclick=function(ev){
+		// 得到事件源 兼容IE
+		var ev=ev||window.event;
+		// 获得事件源对象  也就是触发对象
+		var target=ev.target||ev.srcElement;
+
+		// 根据对象执行指令
+		changeDetail(target.innerHTML);
+	}
+
+}
+
    </script>
 </body>
 </html>
